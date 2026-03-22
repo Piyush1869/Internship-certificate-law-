@@ -413,7 +413,6 @@
                     <label>Mobile Number</label>
                     <input type="text" id="in_adv_mob" value="9835704475">
                 </div>
-                <!-- Added Court Input Field -->
                 <div class="form-group full-width">
                     <label>Court / Chamber Info (Under Advocate)</label>
                     <input type="text" id="in_adv_court" value="Civil Court, Giridih">
@@ -444,9 +443,19 @@ Giridih (815301)</textarea>
                     <label>Semester</label>
                     <input type="text" id="in_semester" value="7th">
                 </div>
+                
+                <!-- SEPARATED EDUCATION FIELDS -->
+                <div class="form-group">
+                    <label>Course Name</label>
+                    <input type="text" id="in_course" value="B.B.A L.L.B">
+                </div>
+                <div class="form-group">
+                    <label>Enrollment Number</label>
+                    <input type="text" id="in_enrollment" value="AJU221883">
+                </div>
                 <div class="form-group full-width">
-                    <label>Course Name & Info</label>
-                    <input type="text" id="in_course" value="B.B.A L.L.B } From a student of Arka Jain University, seraikela kharsawan Enrollment No. AJU221883">
+                    <label>College / University Name</label>
+                    <input type="text" id="in_college" value="Arka Jain University, Seraikela Kharsawan">
                 </div>
                 
                 <div class="form-group full-width">
@@ -492,7 +501,6 @@ Giridih (815301)</textarea>
                         <div class="adv-left">
                             <h3 id="out_adv_name_top">Vikash Kumar</h3>
                             <div class="bold-title">ADVOCATE</div>
-                            <!-- Output Element for Court Info -->
                             <div id="out_adv_court">Civil Court, Giridih</div>
                         </div>
                         <div class="adv-center">
@@ -525,7 +533,7 @@ Giridih (815301)</textarea>
                     <div class="cert-divider"></div>
 
                     <div class="cert-date">
-                        Date :-..../..../.........
+                        Date :- ..../..../.........
                     </div>
 
                     <div class="cert-title">
@@ -534,7 +542,8 @@ Giridih (815301)</textarea>
                     </div>
 
                     <div class="cert-body">
-                        <p>This is to certify that <b><span id="out_name">Aditya Ambastha</span></b>, S/O <b><span id="out_father">Rajeev Kumar Sinha</span></b>, a student of <b><span id="out_year">4th</span></b> year <b><span id="out_semester">7th</span></b> semester his five years, Law course { <b><span id="out_course">B.B.A L.L.B } From a student of Arka Jain University, seraikela kharsawan Enrollment No. AJU221883</span></b></p>
+                        <!-- Updated to use the three new separated spans -->
+                        <p>This is to certify that <b><span id="out_name">Aditya Ambastha</span></b>, S/O <b><span id="out_father">Rajeev Kumar Sinha</span></b>, a student of <b><span id="out_year">4th</span></b> year <b><span id="out_semester">7th</span></b> semester his five years, Law course { <b><span id="out_course">B.B.A L.L.B</span></b> } From a student of <b><span id="out_college">Arka Jain University, Seraikela Kharsawan</span></b> Enrollment No. <b><span id="out_enrollment">AJU221883</span></b></p>
 
                         <p>Has been associated with me as a student intern, from <b><span id="out_start">06.12.25</span></b> to <b><span id="out_end">03.1.26</span></b> During this period of Internship, he assisted me in several of my cases and also did good research on diverse areas, including, <b><span id="out_topics">Criminal Matters, 138 N.I. Act, Domestic Violence, Consumer matters</span></b> in <b><span id="out_location">District and Session Court, Giridih</span></b>.</p>
 
@@ -574,14 +583,19 @@ Giridih (815301)</textarea>
 
         bindData('in_adv_name', 'out_adv_name_top');
         bindData('in_adv_name', 'out_adv_name_sig');
-        bindData('in_adv_court', 'out_adv_court'); // New binding for the Court info
+        bindData('in_adv_court', 'out_adv_court');
         bindData('in_adv_mob', 'out_adv_mob');
         bindData('in_adv_res', 'out_adv_res', true);
         bindData('in_name', 'out_name');
         bindData('in_father', 'out_father');
         bindData('in_year', 'out_year');
         bindData('in_semester', 'out_semester');
+        
+        // NEW BINDINGS FOR SEPARATED FIELDS
         bindData('in_course', 'out_course');
+        bindData('in_college', 'out_college');
+        bindData('in_enrollment', 'out_enrollment');
+        
         bindData('in_start', 'out_start');
         bindData('in_topics', 'out_topics');
         bindData('in_location', 'out_location');
@@ -595,7 +609,7 @@ Giridih (815301)</textarea>
         function scalePreview() {
             const container = document.getElementById('previewContainer');
             const wrapper = document.getElementById('scale-wrapper');
-            const A4_WIDTH_PX = 794; // 210mm in px at 96dpi
+            const A4_WIDTH_PX = 794; 
             const padding = 30; 
             
             let availableWidth = container.clientWidth - padding;
@@ -604,7 +618,7 @@ Giridih (815301)</textarea>
             
             wrapper.style.transform = `scale(${scale})`;
             
-            const A4_HEIGHT_PX = 1123; // 297mm in px
+            const A4_HEIGHT_PX = 1123; 
             container.style.height = `${(A4_HEIGHT_PX * scale) + padding}px`;
         }
 
@@ -622,7 +636,6 @@ Giridih (815301)</textarea>
             const wrapper = document.getElementById('scale-wrapper');
             const currentTransform = wrapper.style.transform;
             
-            // Momentarily remove scale so we capture full resolution
             wrapper.style.transform = 'none';
             
             let candidateName = document.getElementById('in_name').value.trim().replace(/\s+/g, '_') || "Intern";
@@ -630,7 +643,7 @@ Giridih (815301)</textarea>
             this.innerHTML = "Generating Image...";
             
             html2canvas(element, {
-                scale: 2, // High resolution
+                scale: 2, 
                 useCORS: true,
                 backgroundColor: "#ffffff"
             }).then(canvas => {
