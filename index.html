@@ -13,8 +13,8 @@
     <!-- Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     
-    <!-- PDF Library -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <!-- Image Generation Library (Replaced html2pdf with pure html2canvas) -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     
     <!-- Icons (Lucide) -->
     <script src="https://unpkg.com/lucide@latest"></script>
@@ -175,10 +175,6 @@
             gap: 8px;
         }
 
-        .section-title:first-child {
-            margin-top: 0;
-        }
-
         .form-grid {
             display: grid;
             grid-template-columns: 1fr;
@@ -215,15 +211,7 @@
             font-size: 14px;
             font-family: 'Inter', sans-serif;
             background-color: #f8fafc;
-            transition: all 0.2s;
             box-sizing: border-box;
-        }
-
-        input:focus, textarea:focus {
-            outline: none;
-            border-color: var(--primary);
-            background-color: #fff;
-            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
         }
 
         textarea {
@@ -231,37 +219,35 @@
             min-height: 80px;
         }
 
-        .btn-download {
-            background-color: var(--primary);
+        /* Action Buttons */
+        .action-buttons {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-top: 25px;
+        }
+
+        .btn-action {
             color: white;
             border: none;
-            padding: 16px;
+            padding: 14px;
             width: 100%;
-            font-size: 16px;
+            font-size: 15px;
             font-weight: 600;
             border-radius: 12px;
             cursor: pointer;
-            transition: all 0.2s;
             display: flex;
             justify-content: center;
             align-items: center;
-            gap: 10px;
-            margin-top: 25px;
-            box-shadow: 0 4px 6px -1px rgba(37, 99, 235, 0.2);
+            gap: 8px;
+            transition: all 0.2s;
         }
 
-        .btn-download:hover {
-            background-color: var(--primary-hover);
-            transform: translateY(-2px);
-            box-shadow: 0 6px 8px -1px rgba(37, 99, 235, 0.3);
-        }
-        
-        .btn-download:disabled {
-            background-color: #94a3b8;
-            cursor: not-allowed;
-            transform: none;
-            box-shadow: none;
-        }
+        .btn-print { background-color: var(--primary); }
+        .btn-print:hover { background-color: var(--primary-hover); }
+
+        .btn-image { background-color: #8b5cf6; }
+        .btn-image:hover { background-color: #7c3aed; }
 
         /* --- Preview Panel & Scaling Magic --- */
         .preview-panel {
@@ -277,22 +263,21 @@
             box-sizing: border-box;
         }
 
-        /* The scaling wrapper */
         #scale-wrapper {
             transform-origin: top center;
             transition: transform 0.1s ease;
         }
 
-        /* --- Certificate Exact Styling --- */
+        /* --- Certificate Strict A4 Styling --- */
         #certificate {
-            background: white;
-            width: 210mm; /* Strict A4 width */
-            min-height: 297mm; /* Strict A4 height */
-            padding: 25mm 20mm;
+            background-color: #ffffff;
+            width: 210mm; /* Strict A4 Width */
+            min-height: 297mm; /* Strict A4 Height */
+            padding: 25mm 20mm; 
             box-sizing: border-box;
             box-shadow: 0 10px 25px rgba(0,0,0,0.1);
             font-family: "Times New Roman", Times, serif;
-            color: #000;
+            color: #000000;
             line-height: 1.5;
             position: relative;
         }
@@ -319,18 +304,69 @@
         .cert-title { text-align: center; margin-bottom: 35px; line-height: 1.6; }
         .cert-title h1, .cert-title h2 { margin: 0; font-size: 18px; text-decoration: underline; font-weight: bold; }
 
-        .cert-body { font-size: 16px; text-align: justify; text-justify: inter-word; }
+        .cert-body { font-size: 16px; text-align: justify; }
         .cert-body p { margin-bottom: 20px; }
 
-        .cert-signature { margin-top: 70px; text-align: right; padding-right: 20px; }
+        .cert-signature { margin-top: 60px; text-align: right; padding-right: 20px; }
         .cert-line { display: inline-block; text-align: center; }
         .cert-line b { font-size: 16px; }
         .cert-line span { font-size: 14px; }
+
+        /* --- THE MAGIC FIX: BROWSER NATIVE PRINTING --- */
+        @media print {
+            @page {
+                size: A4 portrait;
+                margin: 0; /* Let the #certificate padding handle margins */
+            }
+            
+            body { 
+                background: white; 
+                margin: 0; 
+                padding: 0; 
+                min-height: 100vh;
+            }
+
+            /* Hide everything except the certificate */
+            .app-header, .editor-panel, .action-buttons, .btn-install { 
+                display: none !important; 
+            }
+
+            .main-container { 
+                padding: 0 !important; 
+                margin: 0 !important;
+                display: block; 
+            }
+
+            .preview-panel {
+                background: transparent !important;
+                padding: 0 !important;
+                box-shadow: none !important;
+                display: block !important;
+                height: auto !important; /* Override JS scaling height */
+            }
+
+            #scale-wrapper {
+                transform: none !important; /* MUST REMOVE SCALING FOR PRINT */
+                width: 100%;
+                margin: 0;
+            }
+
+            #certificate {
+                position: relative;
+                top: 0;
+                left: 0;
+                margin: 0;
+                padding: 25mm 20mm;
+                box-shadow: none !important;
+                width: 210mm;
+                height: 297mm;
+                page-break-after: avoid; /* Prevent 2nd blank page */
+            }
+        }
     </style>
 </head>
 <body>
 
-    <!-- Header Navigation -->
     <header class="app-header">
         <div class="header-top">
             <div class="brand">
@@ -352,14 +388,10 @@
 
     <div class="main-container">
         
-        <!-- Left panel: Modern Editor -->
         <div class="editor-panel">
             <div class="form-grid">
-                
                 <div class="form-group full-width">
-                    <div class="section-title">
-                        <i data-lucide="user-check" width="18" height="18"></i> Advocate Details
-                    </div>
+                    <div class="section-title"><i data-lucide="user-check" width="18" height="18"></i> Advocate Details</div>
                 </div>
                 <div class="form-group">
                     <label>Advocate Name</label>
@@ -377,9 +409,7 @@ Giridih (815301)</textarea>
                 </div>
 
                 <div class="form-group full-width">
-                    <div class="section-title">
-                        <i data-lucide="graduation-cap" width="18" height="18"></i> Intern Details
-                    </div>
+                    <div class="section-title"><i data-lucide="graduation-cap" width="18" height="18"></i> Intern Details</div>
                 </div>
                 <div class="form-group">
                     <label>Candidate Name</label>
@@ -403,9 +433,7 @@ Giridih (815301)</textarea>
                 </div>
                 
                 <div class="form-group full-width">
-                    <div class="section-title">
-                        <i data-lucide="calendar-clock" width="18" height="18"></i> Internship Scope
-                    </div>
+                    <div class="section-title"><i data-lucide="calendar-clock" width="18" height="18"></i> Internship Scope</div>
                 </div>
                 <div class="form-group">
                     <label>Start Date</label>
@@ -425,17 +453,24 @@ Giridih (815301)</textarea>
                 </div>
             </div>
 
-            <button id="downloadBtn" class="btn-download">
-                <i data-lucide="file-down" width="20" height="20"></i>
-                <span id="btnText">Download PDF</span>
-            </button>
+            <div class="action-buttons">
+                <!-- Native Print / Save PDF -->
+                <button id="printBtn" class="btn-action btn-print">
+                    <i data-lucide="printer" width="20" height="20"></i>
+                    Print / Save as PDF
+                </button>
+                
+                <!-- Download JPG Image -->
+                <button id="imageBtn" class="btn-action btn-image">
+                    <i data-lucide="image" width="20" height="20"></i>
+                    Download as Image
+                </button>
+            </div>
         </div>
 
-        <!-- Right panel: Scaled Live Preview -->
         <div class="preview-panel" id="previewContainer">
             <div id="scale-wrapper">
                 <div id="certificate">
-                    <!-- Certificate Header -->
                     <div class="cert-header">
                         <div class="adv-left">
                             <h3 id="out_adv_name_top">Vikash Kumar</h3>
@@ -443,8 +478,8 @@ Giridih (815301)</textarea>
                             <div>Civil Court, Giridih</div>
                         </div>
                         <div class="adv-center">
-                            <!-- Added XMLNS for safer PDF rendering -->
-                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="80" height="80">
+                            <!-- SVG logo styled inline for perfect printing -->
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="80" height="80" style="display:block; margin: 0 auto;">
                                 <circle cx="50" cy="50" r="48" fill="#222"/>
                                 <circle cx="50" cy="50" r="45" fill="none" stroke="white" stroke-width="1.5"/>
                                 <rect x="47" y="25" width="6" height="35" fill="white"/>
@@ -471,18 +506,15 @@ Giridih (815301)</textarea>
 
                     <div class="cert-divider"></div>
 
-                    <!-- Certificate Date -->
                     <div class="cert-date">
-                        Date :-....../...../.....
+                        Date :- <u id="out_date">03.1.26</u>
                     </div>
 
-                    <!-- Certificate Title -->
                     <div class="cert-title">
                         <h1>CERTIFICATE OF INTERNSHIP</h1>
                         <h2>TO WHOMSOEVER IT MAY CONCERN</h2>
                     </div>
 
-                    <!-- Certificate Body -->
                     <div class="cert-body">
                         <p>This is to certify that <b><span id="out_name">Aditya Ambastha</span></b>, S/O <b><span id="out_father">Rajeev Kumar Sinha</span></b>, a student of <b><span id="out_year">4th</span></b> year <b><span id="out_semester">7th</span></b> semester his five years, Law course { <b><span id="out_course">B.B.A L.L.B } From a student of Arka Jain University, seraikela kharsawan Enrollment No. AJU221883</span></b></p>
 
@@ -493,7 +525,6 @@ Giridih (815301)</textarea>
                         <p>I Found him to be hardworking, efficient, energetic and dedicated with regards to the work assign to him and I was quite impressed with his analytical and inter- personal skills and knowledge. I whole heartedly recommend him for internship in future.</p>
                     </div>
 
-                    <!-- Certificate Footer / Signature -->
                     <div class="cert-signature">
                         <div class="cert-line">
                             <br><br><br>
@@ -507,10 +538,10 @@ Giridih (815301)</textarea>
     </div>
 
     <script>
-        // 1. Initialize Icons
+        // Initialize Icons
         lucide.createIcons();
 
-        // 2. Real-time Data Binding
+        // Data Binding
         const bindData = (inputId, outputId, isHtml = false) => {
             const inputEl = document.getElementById(inputId);
             const outputEl = document.getElementById(outputId);
@@ -541,11 +572,11 @@ Giridih (815301)</textarea>
             document.getElementById('out_date').innerText = e.target.value;
         });
 
-        // 3. Responsive Scaling for Mobile Preview
+        // Mobile Scaling (Visual Only)
         function scalePreview() {
             const container = document.getElementById('previewContainer');
             const wrapper = document.getElementById('scale-wrapper');
-            const A4_WIDTH_PX = 794; 
+            const A4_WIDTH_PX = 794; // 210mm in px at 96dpi
             const padding = 30; 
             
             let availableWidth = container.clientWidth - padding;
@@ -554,72 +585,59 @@ Giridih (815301)</textarea>
             
             wrapper.style.transform = `scale(${scale})`;
             
-            const A4_HEIGHT_PX = 1123; 
+            const A4_HEIGHT_PX = 1123; // 297mm in px
             container.style.height = `${(A4_HEIGHT_PX * scale) + padding}px`;
         }
 
         window.addEventListener('resize', scalePreview);
         setTimeout(scalePreview, 100);
 
-        // 4. BULLETPROOF PDF GENERATION
-        document.getElementById('downloadBtn').addEventListener('click', function() {
-            const originalElement = document.getElementById('certificate');
-            let candidateName = document.getElementById('in_name').value.trim().replace(/\s+/g, '_');
-            if (!candidateName) candidateName = "Intern";
-            
-            const btn = document.getElementById('downloadBtn');
-            const btnText = document.getElementById('btnText');
-            
-            // Visual feedback
-            btn.disabled = true;
-            btnText.innerText = "Generating PDF...";
+        // --- NATIVE PRINT / PDF FUNCTION ---
+        document.getElementById('printBtn').addEventListener('click', function() {
+            // By calling the native print dialog, mobile devices will show a "Save as PDF" option!
+            // The `@media print` CSS block handles making it look perfect.
+            window.print();
+        });
 
-            // Create an absolute clone that is NOT affected by screen scaling or scrolling
-            // This prevents the "blank page" or "cut off page" errors
-            const clone = originalElement.cloneNode(true);
-            const cloneContainer = document.createElement('div');
+        // --- DOWNLOAD AS IMAGE FUNCTION ---
+        document.getElementById('imageBtn').addEventListener('click', function() {
+            const element = document.getElementById('certificate');
+            const wrapper = document.getElementById('scale-wrapper');
+            const currentTransform = wrapper.style.transform;
             
-            cloneContainer.style.position = 'fixed';
-            cloneContainer.style.top = '0';
-            cloneContainer.style.left = '0';
-            cloneContainer.style.zIndex = '-1000'; // Hide it behind everything
-            cloneContainer.style.background = 'white';
-            cloneContainer.style.width = '210mm';
-            cloneContainer.style.minHeight = '297mm';
+            // Momentarily remove scale so we capture full resolution, not a squished mobile version
+            wrapper.style.transform = 'none';
             
-            cloneContainer.appendChild(clone);
-            document.body.appendChild(cloneContainer);
-
-            // PDF Options tailored for perfect 1-page A4
-            const opt = {
-                margin:       0,
-                filename:     `${candidateName}_Internship_Certificate.pdf`,
-                image:        { type: 'jpeg', quality: 1 },
-                html2canvas:  { 
-                    scale: 2,           // Excellent quality
-                    useCORS: true, 
-                    scrollY: 0,         // Ignore scroll position
-                    scrollX: 0
-                },
-                jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
-            };
-
-            // Generate and save
-            html2pdf().set(opt).from(cloneContainer).save().then(() => {
-                // Cleanup after download is triggered
-                document.body.removeChild(cloneContainer);
-                btn.disabled = false;
-                btnText.innerText = "Download PDF";
+            let candidateName = document.getElementById('in_name').value.trim().replace(/\s+/g, '_') || "Intern";
+            const originalBtnHtml = this.innerHTML;
+            this.innerHTML = "Generating Image...";
+            
+            html2canvas(element, {
+                scale: 2, // High resolution
+                useCORS: true,
+                backgroundColor: "#ffffff"
+            }).then(canvas => {
+                // Convert to image URL
+                const imgData = canvas.toDataURL('image/jpeg', 1.0);
+                
+                // Create dummy link to trigger download
+                const link = document.createElement('a');
+                link.download = `${candidateName}_Certificate.jpg`;
+                link.href = imgData;
+                link.click();
+                
+                // Restore UI
+                wrapper.style.transform = currentTransform;
+                this.innerHTML = originalBtnHtml;
             }).catch(err => {
-                console.error("PDF generation failed:", err);
-                document.body.removeChild(cloneContainer);
-                btn.disabled = false;
-                btnText.innerText = "Download PDF";
-                alert("An error occurred while generating the PDF. Please try again.");
+                console.error("Image generation failed", err);
+                wrapper.style.transform = currentTransform;
+                this.innerHTML = originalBtnHtml;
+                alert("Failed to generate image.");
             });
         });
 
-        // 5. PWA Install Logic
+        // PWA Install Logic
         let deferredPrompt;
         const installBtn = document.getElementById('installBtn');
 
