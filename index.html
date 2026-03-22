@@ -13,7 +13,7 @@
     <!-- Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     
-    <!-- Image Generation Library (Replaced html2pdf with pure html2canvas) -->
+    <!-- Image Generation Library -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     
     <!-- Icons (Lucide) -->
@@ -175,6 +175,10 @@
             gap: 8px;
         }
 
+        .section-title:first-child {
+            margin-top: 0;
+        }
+
         .form-grid {
             display: grid;
             grid-template-columns: 1fr;
@@ -212,6 +216,14 @@
             font-family: 'Inter', sans-serif;
             background-color: #f8fafc;
             box-sizing: border-box;
+            transition: all 0.2s;
+        }
+
+        input:focus, textarea:focus {
+            outline: none;
+            border-color: var(--primary);
+            background-color: #fff;
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
         }
 
         textarea {
@@ -401,6 +413,11 @@
                     <label>Mobile Number</label>
                     <input type="text" id="in_adv_mob" value="9835704475">
                 </div>
+                <!-- Added Court Input Field -->
+                <div class="form-group full-width">
+                    <label>Court / Chamber Info (Under Advocate)</label>
+                    <input type="text" id="in_adv_court" value="Civil Court, Giridih">
+                </div>
                 <div class="form-group full-width">
                     <label>Residence Address</label>
                     <textarea id="in_adv_res">Giridih Old Police Line Road
@@ -475,7 +492,8 @@ Giridih (815301)</textarea>
                         <div class="adv-left">
                             <h3 id="out_adv_name_top">Vikash Kumar</h3>
                             <div class="bold-title">ADVOCATE</div>
-                            <div>Civil Court, Giridih</div>
+                            <!-- Output Element for Court Info -->
+                            <div id="out_adv_court">Civil Court, Giridih</div>
                         </div>
                         <div class="adv-center">
                             <!-- SVG logo styled inline for perfect printing -->
@@ -507,7 +525,7 @@ Giridih (815301)</textarea>
                     <div class="cert-divider"></div>
 
                     <div class="cert-date">
-                        Date :- .../.../.......
+                        Date :- <u id="out_date">03.1.26</u>
                     </div>
 
                     <div class="cert-title">
@@ -556,6 +574,7 @@ Giridih (815301)</textarea>
 
         bindData('in_adv_name', 'out_adv_name_top');
         bindData('in_adv_name', 'out_adv_name_sig');
+        bindData('in_adv_court', 'out_adv_court'); // New binding for the Court info
         bindData('in_adv_mob', 'out_adv_mob');
         bindData('in_adv_res', 'out_adv_res', true);
         bindData('in_name', 'out_name');
@@ -594,8 +613,6 @@ Giridih (815301)</textarea>
 
         // --- NATIVE PRINT / PDF FUNCTION ---
         document.getElementById('printBtn').addEventListener('click', function() {
-            // By calling the native print dialog, mobile devices will show a "Save as PDF" option!
-            // The `@media print` CSS block handles making it look perfect.
             window.print();
         });
 
@@ -605,7 +622,7 @@ Giridih (815301)</textarea>
             const wrapper = document.getElementById('scale-wrapper');
             const currentTransform = wrapper.style.transform;
             
-            // Momentarily remove scale so we capture full resolution, not a squished mobile version
+            // Momentarily remove scale so we capture full resolution
             wrapper.style.transform = 'none';
             
             let candidateName = document.getElementById('in_name').value.trim().replace(/\s+/g, '_') || "Intern";
@@ -617,16 +634,13 @@ Giridih (815301)</textarea>
                 useCORS: true,
                 backgroundColor: "#ffffff"
             }).then(canvas => {
-                // Convert to image URL
                 const imgData = canvas.toDataURL('image/jpeg', 1.0);
                 
-                // Create dummy link to trigger download
                 const link = document.createElement('a');
                 link.download = `${candidateName}_Certificate.jpg`;
                 link.href = imgData;
                 link.click();
                 
-                // Restore UI
                 wrapper.style.transform = currentTransform;
                 this.innerHTML = originalBtnHtml;
             }).catch(err => {
