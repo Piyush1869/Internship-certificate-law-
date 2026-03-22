@@ -255,6 +255,13 @@
             transform: translateY(-2px);
             box-shadow: 0 6px 8px -1px rgba(37, 99, 235, 0.3);
         }
+        
+        .btn-download:disabled {
+            background-color: #94a3b8;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
 
         /* --- Preview Panel & Scaling Magic --- */
         .preview-panel {
@@ -265,7 +272,7 @@
             display: flex;
             justify-content: center;
             align-items: flex-start;
-            overflow: hidden; /* Hide overflow so scale handles it */
+            overflow: hidden; 
             width: 100%;
             box-sizing: border-box;
         }
@@ -420,7 +427,7 @@ Giridih (815301)</textarea>
 
             <button id="downloadBtn" class="btn-download">
                 <i data-lucide="file-down" width="20" height="20"></i>
-                Download PDF
+                <span id="btnText">Download PDF</span>
             </button>
         </div>
 
@@ -436,7 +443,8 @@ Giridih (815301)</textarea>
                             <div>Civil Court, Giridih</div>
                         </div>
                         <div class="adv-center">
-                            <svg viewBox="0 0 100 100" width="80" height="80">
+                            <!-- Added XMLNS for safer PDF rendering -->
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="80" height="80">
                                 <circle cx="50" cy="50" r="48" fill="#222"/>
                                 <circle cx="50" cy="50" r="45" fill="none" stroke="white" stroke-width="1.5"/>
                                 <rect x="47" y="25" width="6" height="35" fill="white"/>
@@ -465,7 +473,7 @@ Giridih (815301)</textarea>
 
                     <!-- Certificate Date -->
                     <div class="cert-date">
-                        Date :- <u id="out_date">03.1.26</u>
+                        Date :- <pre id="out_date">03.1.26</pre>
                     </div>
 
                     <!-- Certificate Title -->
@@ -534,52 +542,80 @@ Giridih (815301)</textarea>
         });
 
         // 3. Responsive Scaling for Mobile Preview
-        // This ensures the A4 paper fits perfectly on the screen visually, but prints normally.
         function scalePreview() {
             const container = document.getElementById('previewContainer');
             const wrapper = document.getElementById('scale-wrapper');
-            const A4_WIDTH_PX = 794; // 210mm in pixels at 96dpi
-            const padding = 30; // 15px on each side
+            const A4_WIDTH_PX = 794; 
+            const padding = 30; 
             
-            // Calculate scale based on container width
             let availableWidth = container.clientWidth - padding;
             let scale = availableWidth / A4_WIDTH_PX;
-            
-            // Limit scale between 0.3 and 1
             if (scale > 1) scale = 1;
             
             wrapper.style.transform = `scale(${scale})`;
             
-            // Adjust container height to match scaled content
             const A4_HEIGHT_PX = 1123; 
             container.style.height = `${(A4_HEIGHT_PX * scale) + padding}px`;
         }
 
         window.addEventListener('resize', scalePreview);
-        // Initial call
         setTimeout(scalePreview, 100);
 
-        // 4. PDF Generation
+        // 4. BULLETPROOF PDF GENERATION
         document.getElementById('downloadBtn').addEventListener('click', function() {
-            const element = document.getElementById('certificate');
-            const candidateName = document.getElementById('in_name').value.replace(/\s+/g, '_');
+            const originalElement = document.getElementById('certificate');
+            let candidateName = document.getElementById('in_name').value.trim().replace(/\s+/g, '_');
+            if (!candidateName) candidateName = "Intern";
             
-            // Briefly reset wrapper scaling to ensure html2pdf captures full A4 dimensions
-            const wrapper = document.getElementById('scale-wrapper');
-            const currentTransform = wrapper.style.transform;
-            wrapper.style.transform = 'scale(1)';
+            const btn = document.getElementById('downloadBtn');
+            const btnText = document.getElementById('btnText');
+            
+            // Visual feedback
+            btn.disabled = true;
+            btnText.innerText = "Generating PDF...";
 
+            // Create an absolute clone that is NOT affected by screen scaling or scrolling
+            // This prevents the "blank page" or "cut off page" errors
+            const clone = originalElement.cloneNode(true);
+            const cloneContainer = document.createElement('div');
+            
+            cloneContainer.style.position = 'fixed';
+            cloneContainer.style.top = '0';
+            cloneContainer.style.left = '0';
+            cloneContainer.style.zIndex = '-1000'; // Hide it behind everything
+            cloneContainer.style.background = 'white';
+            cloneContainer.style.width = '210mm';
+            cloneContainer.style.minHeight = '297mm';
+            
+            cloneContainer.appendChild(clone);
+            document.body.appendChild(cloneContainer);
+
+            // PDF Options tailored for perfect 1-page A4
             const opt = {
                 margin:       0,
                 filename:     `${candidateName}_Internship_Certificate.pdf`,
                 image:        { type: 'jpeg', quality: 1 },
-                html2canvas:  { scale: 3, useCORS: true, logging: false },
+                html2canvas:  { 
+                    scale: 2,           // Excellent quality
+                    useCORS: true, 
+                    scrollY: 0,         // Ignore scroll position
+                    scrollX: 0
+                },
                 jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
             };
 
-            html2pdf().set(opt).from(element).save().then(() => {
-                // Restore scale after download
-                wrapper.style.transform = currentTransform;
+            // Generate and save
+            html2pdf().set(opt).from(cloneContainer).save().then(() => {
+                // Cleanup after download is triggered
+                document.body.removeChild(cloneContainer);
+                btn.disabled = false;
+                btnText.innerText = "Download PDF";
+            }).catch(err => {
+                console.error("PDF generation failed:", err);
+                document.body.removeChild(cloneContainer);
+                btn.disabled = false;
+                btnText.innerText = "Download PDF";
+                alert("An error occurred while generating the PDF. Please try again.");
             });
         });
 
@@ -587,32 +623,25 @@ Giridih (815301)</textarea>
         let deferredPrompt;
         const installBtn = document.getElementById('installBtn');
 
-        // Check if already installed
         if (window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true) {
             installBtn.style.display = 'none';
         }
 
         window.addEventListener('beforeinstallprompt', (e) => {
-            // Prevent Chrome 67 and earlier from automatically showing the prompt
             e.preventDefault();
-            // Stash the event so it can be triggered later.
             deferredPrompt = e;
-            // Update UI to notify the user they can add to home screen
             installBtn.style.display = 'flex';
         });
 
         installBtn.addEventListener('click', async () => {
             if (deferredPrompt) {
-                // Show the prompt
                 deferredPrompt.prompt();
-                // Wait for the user to respond to the prompt
                 const { outcome } = await deferredPrompt.userChoice;
                 if (outcome === 'accepted') {
                     installBtn.style.display = 'none';
                 }
                 deferredPrompt = null;
             } else {
-                // Fallback for iOS/Safari or devices that don't support the native prompt
                 alert("To install as an App:\n\n1. Tap the Share button (iOS) or Menu (Android)\n2. Select 'Add to Home Screen'");
             }
         });
